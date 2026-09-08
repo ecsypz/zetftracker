@@ -1,0 +1,306 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zcash ETF Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDEEEA; --card:#FFFFFF; --ink:#191C1A; --muted:#6C736E;
+    --rule:#D2D6CF; --rule2:#8E958D; --gold:#F4B728; --gold-deep:#9C7009;
+    --gain:#136B47; --loss:#A32A1B; --zebra:#F7F8F5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);padding:26px 18px 80px;
+    font-family:'Archivo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto}
+  .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+  .pos{color:var(--gain)} .neg{color:var(--loss)} .dim{color:var(--muted)}
+  .mast{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px}
+  .mast h1{font-size:31px;font-weight:700;letter-spacing:-.022em;margin:0}
+  .mast .sub{font-size:13.5px;color:var(--muted)}
+  .mast .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted)}
+  .btn{background:var(--ink);color:#fff;border:0;border-radius:3px;padding:7px 13px;font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+  .btn:hover{background:#000}
+  .btn:focus-visible{outline:2px solid var(--gold-deep);outline-offset:1px}
+  .panel{background:var(--card);border:1px solid var(--rule);border-radius:3px;margin:16px 0 20px}
+  .panel > h2{font-size:14.5px;font-weight:600;margin:0;padding:12px 16px;border-bottom:1px solid var(--rule);
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .panel > h2 .hint{font-weight:400;font-size:13px;color:var(--muted)}
+  .pad{padding:15px 16px}
+  .scroll{overflow-x:auto}
+  .hero{padding:20px 16px 4px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+  .cum-label{font-size:13px;color:var(--muted);margin-bottom:2px}
+  .cum{font-size:42px;font-weight:600;letter-spacing:-.03em;line-height:1}
+  .cum-note{font-size:13px;color:var(--muted);margin-top:6px}
+  .aum{text-align:right}
+  .aum .v{font-size:21px;font-weight:600;letter-spacing:-.02em}
+  .aum .l{font-size:12.5px;color:var(--muted)}
+  svg.chart{display:block;width:100%;height:150px}
+  .legend{display:flex;gap:16px;align-items:center;font-size:12.5px;color:var(--muted);padding:8px 16px 10px;flex-wrap:wrap}
+  .ranges{margin-left:auto;display:flex;gap:2px}
+  .ranges button,.tabs button{background:transparent;border:1px solid transparent;border-radius:2px;padding:2px 8px;font:inherit;font-size:12px;color:var(--muted);cursor:pointer}
+  .ranges button:hover,.tabs button:hover{border-color:var(--rule)}
+  .ranges button.on,.tabs button.on{background:var(--ink);color:var(--card)}
+  .tabs{display:flex;gap:2px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;overflow:hidden;margin-bottom:20px}
+  .stat{background:var(--card);padding:13px 15px 14px}
+  .stat .k{font-size:12.5px;color:var(--muted);margin-bottom:4px}
+  .stat .v{font-size:23px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+  .stat .x{font-size:12.5px;color:var(--muted);margin-top:3px}
+  table.flow{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.flow th,table.flow td{padding:6px 11px;text-align:right;white-space:nowrap}
+  table.flow th:first-child,table.flow td:first-child{text-align:left;font-weight:500}
+  table.flow thead tr.tick th{font-weight:700;font-size:13.5px;border-bottom:1px solid var(--rule2)}
+  table.flow thead tr.fee th{font-weight:400;font-size:12px;color:var(--muted);padding-top:2px;padding-bottom:7px;border-bottom:1px solid var(--rule2)}
+  table.flow th.total,table.flow td.total{border-left:1px solid var(--rule2);font-weight:600}
+  table.flow tbody tr:nth-child(even){background:var(--zebra)}
+  table.flow tbody td{border-bottom:1px solid #EBEDE8}
+  table.flow tfoot td{border-top:1px solid var(--rule2);font-weight:600;padding-top:8px}
+  .read{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+  .read .cell{border:1px solid var(--rule);border-radius:3px;padding:11px 13px}
+  .read .k{font-size:12.5px;color:var(--muted);margin-bottom:3px}
+  .read .v{font-size:16px;font-weight:600}
+  .read .x{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+  .notes{font-size:13px;color:var(--muted);line-height:1.62}
+  .notes p{margin:0 0 9px} .notes b{color:var(--ink);font-weight:600}
+  .notes a{color:var(--gold-deep)}
+  .notes code{background:var(--paper);padding:1px 5px;border-radius:2px;font-size:12.5px}
+  .err{padding:30px 16px;text-align:center;color:var(--loss)}
+  @media (max-width:720px){
+    body{padding:16px 10px 60px} .stats{grid-template-columns:repeat(2,1fr)}
+    .mast h1{font-size:24px} .cum{font-size:33px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="mast">
+    <h1>Zcash ETF Flow</h1>
+    <div class="sub">ZCSH · Grayscale Zcash ETF · NYSE Arca · daily net flow, US$m</div>
+    <div class="right"><span id="asof"></span><button class="btn" id="refresh">Refresh</button></div>
+  </div>
+
+  <section class="panel">
+    <div class="hero">
+      <div>
+        <div class="cum-label">Cumulative net flow since 25 Aug 2026 conversion</div>
+        <div class="cum num" id="cum">—</div>
+        <div class="cum-note" id="cumNote"></div>
+      </div>
+      <div class="aum"><div class="v num" id="aum">—</div><div class="l" id="aumL">Net assets</div></div>
+    </div>
+    <svg class="chart" id="chart" role="img" aria-label="Daily net flow"></svg>
+    <div class="legend">
+      <span>Bars: daily net flow</span><span>Line: cumulative</span><span id="peak"></span>
+      <span class="ranges" id="ranges"><button data-r="14">2W</button><button data-r="30">1M</button><button data-r="90">3M</button><button data-r="0" class="on">All</button></span>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Latest session</div><div class="v num" id="s1">—</div><div class="x" id="s1x"></div></div>
+    <div class="stat"><div class="k">Change vs prior session</div><div class="v num" id="s2">—</div><div class="x" id="s2x"></div></div>
+    <div class="stat"><div class="k">Trailing 7 days</div><div class="v num" id="s3">—</div><div class="x" id="s3x"></div></div>
+    <div class="stat"><div class="k">Trailing 28 days</div><div class="v num" id="s4">—</div><div class="x" id="s4x"></div></div>
+  </div>
+
+  <section class="panel">
+    <h2><span>Sessions</span><span class="tabs" id="tabs"><button data-p="d" class="on">Daily</button><button data-p="w">Weekly</button></span></h2>
+    <div class="scroll" id="tableWrap"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Reading the tape <span class="hint">Derived from the series above — descriptive, not advice</span></h2>
+    <div class="pad"><div class="read" id="read"></div></div>
+  </section>
+
+  <section class="panel">
+    <h2>Method and source</h2>
+    <div class="pad notes">
+      <p><b>Flow.</b> <code>(shares outstanding today − yesterday) × NAV per share</code>. Creations and redemptions are the only thing that moves shares outstanding, so this is the flow, from the issuer's own numbers. Zero days are true zeros — no basket activity — not missing data.</p>
+      <p><b>Growth %.</b> Period flow over net assets at the period's start: an organic growth rate, insulated from ZEC's price moves. AUM change ≠ flow — most of ZCSH's AUM growth so far is mark-to-market.</p>
+      <p><b>Pipeline.</b> A GitHub Action fetches <a id="srcLink" href="#">Grayscale's daily product-performance file</a> each weekday evening after NAV posts, recomputes the series and commits it here. Data shown is exactly that file, no third parties in the chain. Timestamp top right; the Refresh button re-reads the latest committed data.</p>
+      <p><b>Scope.</b> ZCSH is currently the only listed US spot ZEC ETF. Bitwise has one pending — when it lists, this page will need a second column and a revised total. Pre-conversion trust history (back to 2021) is in the data file but excluded here: the trust had no redemption mechanism, so ETF-style daily flow doesn't exist for that era.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+const ETF_START='2026-08-25';
+let ROWS=[], rangeDays=0, period='d', GEN='';
+const $=id=>document.getElementById(id);
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fs=iso=>{const[y,m,d]=iso.split('-');return `${d} ${MON[+m-1]} ${y}`;};
+const fsS=iso=>{const[,m,d]=iso.split('-');return `${+d} ${MON[+m-1]}`;};
+const gap=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/864e5);
+const wkKey=iso=>{const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toISOString().slice(0,10);};
+const usd=(n,dp)=>{if(n==null||!Number.isFinite(n))return '—';const a=Math.abs(n),s=n<0?'-':'';
+  if(a>=1e9)return s+'$'+(a/1e9).toFixed(dp??2)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(dp??1)+'M';
+  if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+a.toFixed(0);};
+const sUsd=(n,dp)=>n==null?'—':(n>0?'+':'')+usd(n,dp);
+const pct=(n,dp)=>n==null||!Number.isFinite(n)?'n/m':(n>0?'+':'')+(n*100).toFixed(dp??2)+'%';
+const cls=n=>n>0?'pos':(n<0?'neg':'');
+const mm=(n,dp)=>{if(n==null||!Number.isFinite(n))return '<span class="dim">-</span>';
+  const v=n/1e6,a=Math.abs(v).toFixed(dp??1);
+  return v<0?`<span class="neg">(${a})</span>`:(v>0?`<span class="pos">${a}</span>`:'<span class="dim">0.0</span>');};
+const mmBig=n=>{if(n==null)return '<span class="dim">-</span>';const v=n/1e6,a=Math.abs(v).toLocaleString('en-US',{maximumFractionDigits:0});
+  return v<0?`<span class="neg">(${a})</span>`:`<span class="${v>0?'pos':'dim'}">${a}</span>`;};
+
+async function load(fresh){
+  try{
+    const r=await fetch('data/zcsh.json'+(fresh?('?t='+Date.now()):''),{cache:fresh?'reload':'default'});
+    const j=await r.json();
+    ROWS=j.rows.filter(x=>x.date>=ETF_START);
+    GEN=j.generated||'';
+    if(j.source)$('srcLink').href=j.source;
+    $('asof').textContent='Data through '+fs(ROWS[ROWS.length-1].date)+' · built '+GEN.slice(0,16).replace('T',' ')+'Z';
+    render();
+  }catch(e){
+    document.querySelector('.wrap').insertAdjacentHTML('beforeend','<div class="err">Could not load data/zcsh.json — has the Action run yet?</div>');
+  }
+}
+$('refresh').onclick=()=>load(true);
+
+function flows(){return ROWS.filter(x=>x.flow!=null);}
+function render(){hero();cards();table();readPanel();}
+
+function hero(){
+  const f=flows(); if(!f.length)return;
+  const last=ROWS[ROWS.length-1], cum=f[f.length-1].cum;
+  $('cum').textContent=sUsd(cum,1); $('cum').className='cum num '+cls(cum);
+  $('cumNote').textContent=f.length+' sessions · '+fsS(ROWS[0].date)+' to '+fsS(last.date);
+  $('aum').textContent=usd(last.aum,1); $('aumL').textContent='Net assets, '+fsS(last.date);
+  chart();
+}
+function chart(){
+  const svg=$('chart'); let p=[...ROWS];
+  if(rangeDays>0){const last=p[p.length-1].date;p=p.filter(x=>gap(x.date,last)<rangeDays);}
+  p=p.filter(x=>x.flow!=null); if(!p.length){svg.innerHTML='';return;}
+  const W=svg.clientWidth||900,H=150,pT=12,pB=18,pad=6;
+  const maxA=Math.max(...p.map(x=>Math.abs(x.flow)),1), half=(H-pT-pB)/2, zero=pT+half;
+  const maxC=Math.max(...p.map(x=>Math.abs(x.cum)),1);
+  const slot=(W-pad*2)/p.length, bw=Math.max(3,Math.min(28,slot*.6));
+  let path='',bars='';
+  p.forEach((x,i)=>{
+    const cx=pad+slot*(i+.5), hh=Math.abs(x.flow)/maxA*half, y=x.flow>=0?zero-hh:zero;
+    path+=(i?'L':'M')+cx.toFixed(1)+' '+(zero-(x.cum/maxC)*half).toFixed(1)+' ';
+    bars+=`<rect x="${(cx-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(hh,1).toFixed(1)}" fill="${x.flow>=0?'var(--gain)':'var(--loss)'}" rx="1"><title>${fs(x.date)}: ${sUsd(x.flow,2)}</title></rect>`;
+  });
+  const ev=Math.max(1,Math.ceil(p.length/9));
+  const lab=p.map((x,i)=>(i%ev&&i!==p.length-1)?'':`<text x="${(pad+slot*(i+.5)).toFixed(1)}" y="${H-3}" text-anchor="middle" font-size="10.5" fill="var(--muted)" font-family="Archivo,sans-serif">${fsS(x.date)}</text>`).join('');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.innerHTML=`<line x1="0" x2="${W}" y1="${zero}" y2="${zero}" stroke="var(--rule)"/>${bars}<path d="${path}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round"/>${lab}`;
+  $('peak').textContent='Peak session '+sUsd(p.reduce((a,b)=>Math.abs(b.flow)>Math.abs(a.flow)?b:a).flow,1);
+}
+function windowFlow(n){
+  const f=flows(); if(!f.length)return{sum:null,base:null};
+  const last=f[f.length-1].date; let sum=null,base=null;
+  for(const x of ROWS){
+    if(gap(x.date,last)<n){ if(x.flow!=null)sum=(sum??0)+x.flow; }
+    else if(x.aum!=null)base=x.aum;
+  }
+  return{sum,base};
+}
+function cards(){
+  const f=flows(); if(!f.length)return;
+  const last=f[f.length-1], prev=f.length>1?f[f.length-2]:null;
+  const li=ROWS.indexOf(last), baseA=li>0?ROWS[li-1].aum:null;
+  $('s1').textContent=sUsd(last.flow,2); $('s1').className='v num '+cls(last.flow);
+  $('s1x').textContent=fsS(last.date)+(baseA?' · '+pct(last.flow/baseA)+' of assets':'');
+  if(prev){const dl=last.flow-prev.flow;
+    $('s2').textContent=sUsd(dl,2); $('s2').className='v num '+cls(dl);
+    $('s2x').textContent='vs '+sUsd(prev.flow,1)+(prev.flow>0?' · '+pct(dl/prev.flow,1):'');}
+  const w=windowFlow(7);
+  $('s3').textContent=sUsd(w.sum,2); $('s3').className='v num '+cls(w.sum);
+  $('s3x').textContent=w.base?pct(w.sum/w.base)+' of assets 7d ago':'';
+  const m=windowFlow(28);
+  $('s4').textContent=sUsd(m.sum,2); $('s4').className='v num '+cls(m.sum);
+  $('s4x').textContent=m.base?pct(m.sum/m.base)+' of assets 28d ago':'Needs 28d of ETF history';
+}
+function table(){ period==='d'?daily():weekly(); }
+function daily(){
+  let h=`<table class="flow"><thead>
+    <tr class="tick"><th>Date</th><th>Shares out</th><th>Δ shares</th><th>NAV</th><th class="total">Flow $m</th><th>vs prior</th><th>% of assets</th><th>Cumulative</th><th>Net assets</th></tr>
+    <tr class="fee"><th>Fee 2.50%</th><th colspan="8"></th></tr></thead><tbody>`;
+  for(let i=ROWS.length-1;i>=0;i--){
+    const r=ROWS[i], b=i>0?ROWS[i-1]:null;
+    const dsh=b&&r.shares!=null&&b.shares!=null?r.shares-b.shares:null;
+    let prevF=null; for(let j=i-1;j>=0;j--){if(ROWS[j].flow!=null){prevF=ROWS[j].flow;break;}}
+    const dod=(r.flow!=null&&prevF!=null)?r.flow-prevF:null;
+    const pa=(r.flow!=null&&b&&b.aum)?r.flow/b.aum:null;
+    h+=`<tr><td>${fs(r.date)}</td>
+      <td class="num">${r.shares==null?'—':r.shares.toLocaleString('en-US')}</td>
+      <td class="num ${cls(dsh)}">${dsh==null?'—':(dsh>0?'+':'')+dsh.toLocaleString('en-US')}</td>
+      <td class="num">${r.nav==null?'—':'$'+r.nav.toFixed(2)}</td>
+      <td class="num total">${mm(r.flow,2)}</td>
+      <td class="num">${dod==null?'<span class="dim">-</span>':mm(dod,2)}</td>
+      <td class="num ${cls(pa)}">${pa==null?'<span class="dim">n/m</span>':pct(pa)}</td>
+      <td class="num ${cls(r.cum)}">${r.cum==null?'—':mm(r.cum,1)}</td>
+      <td class="num dim">${r.aum==null?'—':(r.aum/1e6).toFixed(1)}</td></tr>`;
+  }
+  const fl=flows().map(x=>x.flow);
+  const stat=(fn)=>fl.length?fn(fl):null;
+  h+=`</tbody><tfoot>
+    <tr><td>Total</td><td colspan="3"></td><td class="num total">${mmBig(stat(a=>a.reduce((x,y)=>x+y,0)))}</td><td colspan="4"></td></tr>
+    <tr><td>Average</td><td colspan="3"></td><td class="num total">${mm(stat(a=>a.reduce((x,y)=>x+y,0)/a.length))}</td><td colspan="4"></td></tr>
+    <tr><td>Maximum</td><td colspan="3"></td><td class="num total">${mm(stat(a=>Math.max(...a)))}</td><td colspan="4"></td></tr>
+    <tr><td>Minimum</td><td colspan="3"></td><td class="num total">${mm(stat(a=>Math.min(...a)))}</td><td colspan="4"></td></tr>
+  </tfoot></table>`;
+  $('tableWrap').innerHTML=h;
+}
+function weekly(){
+  const g=new Map();
+  for(const r of ROWS){const k=wkKey(r.date);if(!g.has(k))g.set(k,[]);g.get(k).push(r);}
+  const keys=[...g.keys()].sort();
+  const wk=keys.map(k=>{
+    const rs=g.get(k),f=rs.filter(x=>x.flow!=null);
+    let base=null; for(const r of ROWS){if(r.date<k&&r.aum!=null)base=r.aum;}
+    const close=[...rs].reverse().find(x=>x.aum!=null);
+    return{k,n:f.length,sum:f.length?f.reduce((a,b)=>a+b.flow,0):null,base,close:close?close.aum:null};});
+  let h=`<table class="flow"><thead><tr class="tick"><th>Week of</th><th>Sessions</th><th class="total">Flow $m</th><th>vs prior wk</th><th>Change %</th><th>% of opening assets</th><th>Net assets, wk end</th></tr></thead><tbody>`;
+  for(let i=wk.length-1;i>=0;i--){
+    const c=wk[i],p=i>0?wk[i-1]:null;
+    const dl=(p&&c.sum!=null&&p.sum!=null)?c.sum-p.sum:null;
+    const ch=(p&&p.sum>0&&c.sum!=null)?(c.sum-p.sum)/p.sum:null;
+    h+=`<tr><td>${fs(c.k)}</td><td class="num dim">${c.n}</td>
+      <td class="num total">${mm(c.sum,2)}</td>
+      <td class="num">${dl==null?'<span class="dim">-</span>':mm(dl,2)}</td>
+      <td class="num ${cls(ch)}">${pct(ch,1)}</td>
+      <td class="num ${cls(c.base?c.sum:null)}">${c.base?pct(c.sum/c.base):'<span class="dim">n/m</span>'}</td>
+      <td class="num dim">${c.close==null?'—':(c.close/1e6).toFixed(1)}</td></tr>`;
+  }
+  h+='</tbody></table>';
+  $('tableWrap').innerHTML=h;
+}
+function readPanel(){
+  const f=flows(); if(!f.length)return;
+  const last=ROWS[ROWS.length-1];
+  const l10=f.slice(-10), created=l10.filter(x=>x.flow>0).length, redeemed=l10.filter(x=>x.flow<0).length;
+  let streakEnd=0; for(let i=f.length-1;i>=0&&f[i].flow>=0;i--)streakEnd++;
+  const prem=(last.mkt!=null&&last.nav!=null)?last.mkt/last.nav-1:null;
+  const organic=f[f.length-1].cum/ROWS[0].aum;
+  const big=f.reduce((a,b)=>Math.abs(b.flow)>Math.abs(a.flow)?b:a);
+  const cells=[
+    ['Creation vs redemption, last 10 sessions', `${created} up · ${redeemed} down`,
+     redeemed===0?'No redemption day yet in the ETF era — one-way demand so far.':'Two-way basket activity — watch whether redemptions cluster.'],
+    ['Sessions without a redemption', String(streakEnd),
+     'Counts back from the latest session. A first negative day would be the signal to reassess the streak narrative.'],
+    ['Organic growth since conversion', pct(organic,1),
+     'Cumulative flow over day-one assets. Compares cleanly against other single-asset ETFs regardless of size.'],
+    ['Largest session', sUsd(big.flow,1)+' · '+fsS(big.date),
+     'Creation units land in lumps; single-day records matter less than the cadence.'],
+    ['Premium / discount, latest', prem==null?'n/m':pct(prem),
+     'Persistent premium pressures APs to create (inflows); persistent discount, to redeem.'],
+    ['Flow vs AUM', usd(f[f.length-1].cum,1)+' of '+usd(last.aum,1),
+     'The rest of AUM growth is ZEC price. Quote flow, not AUM, when describing demand.']
+  ];
+  $('read').innerHTML=cells.map(([k,v,x])=>`<div class="cell"><div class="k">${k}</div><div class="v num">${v}</div><div class="x">${x}</div></div>`).join('');
+}
+$('ranges').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  rangeDays=+b.dataset.r;[...$('ranges').children].forEach(x=>x.classList.toggle('on',x===b));chart();});
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  period=b.dataset.p;[...$('tabs').children].forEach(x=>x.classList.toggle('on',x===b));table();});
+window.addEventListener('resize',chart);
+load(false);
+</script>
