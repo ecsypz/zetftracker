@@ -1,8 +1,8 @@
 name: Update ZCSH data
 on:
   schedule:
-    - cron: "45 0 * * 2-6"   # ~7:45pm ET Mon-Fri (winter), after daily NAV posts
-    - cron: "45 4 * * 2-6"   # late-evening retry in case the file posts late
+    - cron: "5,35 21-23 * * 1-5"   # every 30 min, ~5pm-8pm ET, Mon-Fri
+    - cron: "5,35 0-4 * * 2-6"     # every 30 min, ~8pm-1am ET (crosses midnight UTC)
   workflow_dispatch: {}       # the manual "Run workflow" button
 permissions:
   contents: write
